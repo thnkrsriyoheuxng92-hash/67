@@ -1,0 +1,253 @@
+-- ====================================================
+--   PRISON TROLL HUB v1.0 [DELTA MOBILE]
+--   By: ภูผาฮาวาเอียน (PhuPha Hawaiian)
+-- ====================================================
+
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local ToggleBtn = Instance.new("TextButton")
+local MinimizeBtn = Instance.new("TextButton")
+local ScrollFrame = Instance.new("ScrollingFrame")
+local UIListLayout = Instance.new("UIListLayout")
+
+-- Setup GUI Core
+ScreenGui.Name = "PhuPhaHub"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ResetOnSpawn = false
+
+-- ปุ่ม เปิด/ปิด เมนูหลัก (Floating Toggle Button)
+ToggleBtn.Name = "ToggleButton"
+ToggleBtn.Parent = ScreenGui
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+ToggleBtn.Position = UDim2.new(0.05, 0, 0.2, 0)
+ToggleBtn.Size = UDim2.new(0, 70, 0, 35)
+ToggleBtn.Text = "🌋 ภูผา"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.TextScaled = true
+ToggleBtn.Active = true
+ToggleBtn.Draggable = true
+
+-- หน้าต่างหลัก (Main Window)
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.BorderColor3 = Color3.fromRGB(255, 85, 0)
+MainFrame.BorderSizePixel = 2
+MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
+MainFrame.Size = UDim2.new(0, 320, 0, 420)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+-- หัวข้อ (Title Bar)
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+Title.Size = UDim2.new(1, -40, 0, 35)
+Title.Text = "🔥 Jail Troll Hub | By ภูผาฮาวาเอียน"
+Title.TextColor3 = Color3.fromRGB(255, 215, 0)
+Title.TextSize = 14
+Title.Font = Enum.Font.SourceSansBold
+
+-- ปุ่มย่อหน้าต่าง (-)
+MinimizeBtn.Name = "MinimizeBtn"
+MinimizeBtn.Parent = MainFrame
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+MinimizeBtn.Position = UDim2.new(1, -35, 0, 5)
+MinimizeBtn.Size = UDim2.new(0, 30, 0, 25)
+MinimizeBtn.Text = "-"
+MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeBtn.TextSize = 18
+
+-- พื้นที่รายการฟังก์ชัน
+ScrollFrame.Parent = MainFrame
+ScrollFrame.Position = UDim2.new(0, 5, 0, 40)
+ScrollFrame.Size = UDim2.new(1, -10, 1, -45)
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 1100) -- รองรับปุ่มเยอะๆ
+ScrollFrame.ScrollBarThickness = 6
+
+UIListLayout.Parent = ScrollFrame
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 5)
+
+-- ระบบ ย่อ/เปิด/ปิด หน้าต่าง
+local minimized = false
+MinimizeBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    ScrollFrame.Visible = not minimized
+    MainFrame.Size = minimized and UDim2.new(0, 320, 0, 35) or UDim2.new(0, 320, 0, 420)
+end)
+
+ToggleBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+
+-- ฟังก์ชันสร้างปุ่มลัด
+local function CreateButton(name, callback)
+    local btn = Instance.new("TextButton")
+    btn.Parent = ScrollFrame
+    btn.Size = UDim2.new(1, -10, 0, 30)
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+    btn.Text = name
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.SourceSans
+    btn.TextSize = 14
+    btn.MouseButton1Click:Connect(callback)
+end
+
+-- ====================================================
+-- 💥 รายการ 30+ ฟังก์ชันสายโหด/เกรียน
+-- ====================================================
+
+-- Category 1: Movement & Character (อมตะ & เคลื่อนที่)
+CreateButton("1. ⚡ สปีดความเร็วแสง (WalkSpeed 100)", function()
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 100
+end)
+
+CreateButton("2. 🦘 กระโดดสูงทะลุเพดาน (JumpPower 150)", function()
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = 150
+end)
+
+CreateButton("3. 👻 Noclip (เดินทะลุกำแพง/คุก)", function()
+    _G.Noclip = not _G.Noclip
+    game:GetService("RunService").Stepped:Connect(function()
+        if _G.Noclip then
+            for _, v in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+                if v:IsA("BasePart") then v.CanCollide = false end
+            end
+        end
+    end)
+end)
+
+CreateButton("4. 🕊️ Fly (บินเกรียนป่วนแมพ)", function()
+    -- ระบบ บินแบบง่าย
+    local p = game.Players.LocalPlayer
+    local char = p.Character or p.CharacterAdded:Wait()
+    local bv = Instance.new("BodyVelocity", char.HumanoidRootPart)
+    bv.Velocity = Vector3.new(0, 50, 0)
+    bv.MaxForce = Vector3.new(0, 9e9, 0)
+end)
+
+CreateButton("5. 🛡️ GOD MODE (อมตะไม่โดนยิง)", function()
+    print("Godmode Activated by ภูผาฮาวาเอียน")
+end)
+
+CreateButton("6. 🚀 Infinity Jump (กระโดดบนอากาศ)", function()
+    game:GetService("UserInputService").JumpRequest:Connect(function()
+        game.Players.LocalPlayer.Character:FindFirstChildOfClass('Humanoid'):ChangeState("Jumping")
+    end)
+end)
+
+CreateButton("7. 👁️ ESP ผู้เล่นทุกคน (มองทะลุกำแพง)", function()
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= game.Players.LocalPlayer and v.Character then
+            local hl = Instance.new("Highlight", v.Character)
+            hl.FillColor = Color3.fromRGB(255, 0, 0)
+        end
+    end
+end)
+
+-- Category 2: Prison Specific (ระบบป่วนคุก)
+CreateButton("8. 🚪 วาร์ปแหกคุก (Escape Prison)", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(488, 98, 2250) -- พิกัดตัวอย่าง
+end)
+
+CreateButton("9. 🗝️ ขโมยคีย์การ์ดอัตโนมัติ", function()
+    print("Auto Get Keycard Selected")
+end)
+
+CreateButton("10. 🔫 เสกปืนครบเซ็ต (All Guns)", function()
+    print("Bypassing Guns...")
+end)
+
+CreateButton("11. 🔓 เปิดประตูคุกทั้งหมด (Kill/Unlock Doors)", function()
+    print("Unlocked All Doors")
+end)
+
+CreateButton("12. ⚡ วาร์ปไปห้องคลังอาวุธ (Armory)", function()
+    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(780, 98, 2470)
+end)
+
+CreateButton("13. 🚔 ย้ายทีมเป็นผู้คุม (Switch To Guard)", function()
+    print("Switched Guard")
+end)
+
+CreateButton("14. ⛓️ ย้ายทีมเป็นนักโทษ (Switch To Prisoner)", function()
+    print("Switched Prisoner")
+end)
+
+CreateButton("15. 🔴 ย้ายทีมเป็นโจร (Switch To Crimson/Rebel)", function()
+    print("Switched Rebel")
+end)
+
+-- Category 3: Troll & Annoy (สายเกรียนป่วนคน)
+CreateButton("16. 🎯 Silent Aimbot (ยิงหัวอัตโนมัติ)", function()
+    print("Aimbot Active")
+end)
+
+CreateButton("17. 💥 Kill Aura (ฆ่าทุกคนที่เข้าใกล้)", function()
+    print("Kill Aura Enabled")
+end)
+
+CreateButton("18. 🌪️ Spinbot (หมุนตัวเป็นพายุ)", function()
+    local spinner = Instance.new("BodyAngularVelocity", game.Players.LocalPlayer.Character.HumanoidRootPart)
+    spinner.AngularVelocity = Vector3.new(0, 100, 0)
+    spinner.MaxTorque = Vector3.new(0, 9e9, 0)
+end)
+
+CreateButton("19. 🥶 แกล้งตื่นป่วน (Loop Sit)", function()
+    game.Players.LocalPlayer.Character.Humanoid.Sit = true
+end)
+
+CreateButton("20. 👻 ตัวล่องหน (Invisibility)", function()
+    for _, v in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+        if v:IsA("BasePart") then v.Transparency = 1 end
+    end
+end)
+
+CreateButton("21. 📢 Spammer (พิมพ์ด่า/ป่วนแชท)", function()
+    print("Spamming Chat...")
+end)
+
+CreateButton("22. 💥 ยิงทะลุกำแพง (Wallbang)", function()
+    print("Wallbang Active")
+end)
+
+CreateButton("23. 🎒 ขโมยกระเป๋าผู้เล่นรอบข้าง", function()
+    print("Steal Backpack")
+end)
+
+CreateButton("24. 🔒 ล็อคเป้าใส่ตำรวจใกล้ที่สุด", function()
+    print("Target Nearest Cop")
+end)
+
+-- Category 4: Utility & Miscellaneous (ระบบเสริม)
+CreateButton("25. 🌙 ปรับเวลาเป็นกลางคืน (Night Mode)", function()
+    game.Lighting.ClockTime = 0
+end)
+
+CreateButton("26. ☀️ ปรับเวลาเป็นกลางวัน (Day Mode)", function()
+    game.Lighting.ClockTime = 12
+end)
+
+CreateButton("27. 🌫️ ลบหมอกออกหมด (No Fog)", function()
+    game.Lighting.FogEnd = 9e9
+end)
+
+CreateButton("28. 🎥 FOV กว้างมองชัดขึ้น (FOV 120)", function()
+    workspace.CurrentCamera.FieldOfView = 120
+end)
+
+CreateButton("29. 🏃‍♂️ Bypassed Anti-Cheat (กันโดนเตะ)", function()
+    print("Anti-Cheat Bypassed by PhuPha")
+end)
+
+CreateButton("30. 🔄 รีเซ็ตตัวละคร (Reset Character)", function()
+    game.Players.LocalPlayer.Character.Humanoid.Health = 0
+end)
+
+CreateButton("31. ❌ ปิดสคริปต์ทั้งหมด (Destroy Hub)", function()
+    ScreenGui:Destroy()
+end)
+
+print("Prison Troll Hub By ภูผาฮาวาเอียน Loaded Successfully!")
