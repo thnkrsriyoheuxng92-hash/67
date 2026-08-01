@@ -1,0 +1,470 @@
+-- ====================================================
+--   OBSIDIAN WARFARE HUB [FLUENT UI EDITION]
+--   Library: Fluent UI Library (Theme: Darker)
+--   By: ภูผาฮาวาเอียน (PhuPha Hawaiian)
+-- ====================================================
+
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+-- โหลด Fluent UI Library
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+-- สร้าง Window หลัก
+local Window = Fluent:CreateWindow({
+    Title = "⚡ OBSIDIAN WARFARE HUB v5.5",
+    SubTitle = "by ภูผาฮาวาเอียน (Fluent Edition)",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(560, 420),
+    Theme = "Darker",
+    MinimizeKey = Enum.KeyCode.RightControl
+})
+
+-- Services & Variables
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
+local LP = Players.LocalPlayer
+
+-- -----------------------------------------------------------------
+-- 🔘 ปุ่มลอยย่อ/กาง หน้าต่าง GUI สไตล์ "ภูผา HAWAIIAN"
+-- -----------------------------------------------------------------
+if CoreGui:FindFirstChild("PhuPhaFluentGui") then
+    CoreGui.PhuPhaFluentGui:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+local TextToggleBtn = Instance.new("TextButton")
+local Corner = Instance.new("UICorner")
+local Stroke = Instance.new("UIStroke")
+
+ScreenGui.Name = "PhuPhaFluentGui"
+ScreenGui.Parent = CoreGui
+
+TextToggleBtn.Name = "TextToggleBtn"
+TextToggleBtn.Parent = ScreenGui
+TextToggleBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+TextToggleBtn.Position = UDim2.new(0, 15, 0.3, 0)
+TextToggleBtn.Size = UDim2.new(0, 85, 0, 55)
+TextToggleBtn.Font = Enum.Font.FredokaOne
+TextToggleBtn.Text = "🔥 ภูผา 🔥\nHAWAIIAN"
+TextToggleBtn.TextColor3 = Color3.fromRGB(255, 35, 65)
+TextToggleBtn.TextSize = 12
+TextToggleBtn.Active = true
+TextToggleBtn.Draggable = true
+
+Corner.CornerRadius = UDim.new(0, 12)
+Corner.Parent = TextToggleBtn
+
+Stroke.Parent = TextToggleBtn
+Stroke.Color = Color3.fromRGB(255, 35, 65)
+Stroke.Thickness = 2
+
+-- ไฟเรืองแสงกะพริบบนปุ่ม
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        Stroke.Color = Color3.fromRGB(255, 35, 65)
+        task.wait(0.5)
+        Stroke.Color = Color3.fromRGB(150, 20, 40)
+    end
+end)
+
+TextToggleBtn.MouseButton1Click:Connect(function()
+    Window:Minimize()
+end)
+
+-- -----------------------------------------------------------------
+-- 🎨 จัดหน้าต่างเมนู Tabs (Fluent UI)
+-- -----------------------------------------------------------------
+local Tabs = {
+    Movement = Window:AddTab({ Title = "⚡ เคลื่อนที่", Icon = "zap" }),
+    Prison   = Window:AddTab({ Title = "🔴 วาร์ปแมพ", Icon = "map-pin" }),
+    Combat   = Window:AddTab({ Title = "🔥 สายบวก/PVP", Icon = "swords" }),
+    Visuals  = Window:AddTab({ Title = "👁️ ESP/สายตา", Icon = "eye" }),
+    Misc     = Window:AddTab({ Title = "☠️ ระบบ/ป่วน", Icon = "ghost" })
+}
+
+-- ====================================================
+-- ⚡ MOVEMENT TAB
+-- ====================================================
+local speedConn
+Tabs.Movement:AddToggle("SpeedHack", {
+    Title = "💨 Speed Hack (ความเร็ว 120)",
+    Default = false,
+    Callback = function(v)
+        if v then
+            speedConn = RunService.RenderStepped:Connect(function()
+                if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+                    LP.Character.Humanoid.WalkSpeed = 120
+                end
+            end)
+        else
+            if speedConn then speedConn:Disconnect() end
+            if LP.Character and LP.Character:FindFirstChild("Humanoid") then LP.Character.Humanoid.WalkSpeed = 16 end
+        end
+    end
+})
+
+local jumpConn
+Tabs.Movement:AddToggle("HighJump", {
+    Title = "🦘 High Jump (โดดสูง 150)",
+    Default = false,
+    Callback = function(v)
+        if v then
+            jumpConn = RunService.RenderStepped:Connect(function()
+                if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+                    LP.Character.Humanoid.JumpPower = 150
+                end
+            end)
+        else
+            if jumpConn then jumpConn:Disconnect() end
+            if LP.Character and LP.Character:FindFirstChild("Humanoid") then LP.Character.Humanoid.JumpPower = 50 end
+        end
+    end
+})
+
+local noclipConn
+Tabs.Movement:AddToggle("Noclip", {
+    Title = "👻 Noclip (เดินทะลุกำแพง)",
+    Default = false,
+    Callback = function(v)
+        if v then
+            noclipConn = RunService.Stepped:Connect(function()
+                if LP.Character then
+                    for _, p in pairs(LP.Character:GetChildren()) do
+                        if p:IsA("BasePart") then p.CanCollide = false end
+                    end
+                end
+            end)
+        else
+            if noclipConn then noclipConn:Disconnect() end
+        end
+    end
+})
+
+local infJumpConn
+Tabs.Movement:AddToggle("AirWalk", {
+    Title = "🕊️ Air Walk (เหยียบอากาศ)",
+    Default = false,
+    Callback = function(v)
+        if v then
+            infJumpConn = UserInputService.JumpRequest:Connect(function()
+                if LP.Character and LP.Character:FindFirstChildOfClass("Humanoid") then
+                    LP.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+                end
+            end)
+        else
+            if infJumpConn then infJumpConn:Disconnect() end
+        end
+    end
+})
+
+local flying = false
+local flybv
+Tabs.Movement:AddToggle("FlyHack", {
+    Title = "🚁 Fly Hack (บินอิสระ)",
+    Default = false,
+    Callback = function(v)
+        flying = v
+        local char = LP.Character or LP.CharacterAdded:Wait()
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if flying and hrp then
+            flybv = Instance.new("BodyVelocity", hrp)
+            flybv.Velocity = Vector3.new(0,0,0)
+            flybv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+            task.spawn(function()
+                while flying do
+                    flybv.Velocity = workspace.CurrentCamera.CFrame.LookVector * 70
+                    task.wait()
+                end
+                if flybv then flybv:Destroy() end
+            end)
+        else
+            if flybv then flybv:Destroy() end
+        end
+    end
+})
+
+Tabs.Movement:AddToggle("JesusMode", {
+    Title = "🌊 Jesus Mode (เดินบนน้ำ)",
+    Default = false,
+    Callback = function(v)
+        if workspace:FindFirstChild("Water") then workspace.Water.CanCollide = v end
+    end
+})
+
+-- ====================================================
+-- 🔴 PRISON & TELEPORT TAB
+-- ====================================================
+Tabs.Prison:AddButton({
+    Title = "🚪 แหกคุกอัตโนมัติ (Escape Prison)",
+    Callback = function()
+        if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+            LP.Character.HumanoidRootPart.CFrame = CFrame.new(488, 98, 2250)
+        end
+    end
+})
+
+Tabs.Prison:AddButton({
+    Title = "🔫 วาร์ปคลังแสง (Armory)",
+    Callback = function()
+        if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+            LP.Character.HumanoidRootPart.CFrame = CFrame.new(780, 98, 2470)
+        end
+    end
+})
+
+Tabs.Prison:AddButton({
+    Title = "🏀 วาร์ปสนามหญ้า (Yard)",
+    Callback = function()
+        if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+            LP.Character.HumanoidRootPart.CFrame = CFrame.new(905, 98, 2460)
+        end
+    end
+})
+
+Tabs.Prison:AddButton({
+    Title = "🔴 วาร์ปฐานโจร (Criminal Base)",
+    Callback = function()
+        if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+            LP.Character.HumanoidRootPart.CFrame = CFrame.new(-975, 109, 2055)
+        end
+    end
+})
+
+local doorConn
+Tabs.Prison:AddToggle("BypassDoors", {
+    Title = "🔓 Bypassed Doors (ทะลุประตู)",
+    Default = false,
+    Callback = function(v)
+        if v then
+            doorConn = RunService.Stepped:Connect(function()
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj.Name:lower():find("door") and obj:IsA("BasePart") then obj.CanCollide = false end
+                end
+            end)
+        else
+            if doorConn then doorConn:Disconnect() end
+        end
+    end
+})
+
+local tapTPConn
+Tabs.Prison:AddToggle("TouchTP", {
+    Title = "📍 Touch Teleport (แตะเพื่อวาร์ป)",
+    Default = false,
+    Callback = function(v)
+        if v then
+            tapTPConn = UserInputService.InputBegan:Connect(function(input, gpe)
+                if not gpe and input.UserInputType == Enum.UserInputType.Touch then
+                    local ray = workspace.CurrentCamera:ScreenPointToRay(input.Position.X, input.Position.Y)
+                    local res = workspace:Raycast(ray.Origin, ray.Direction * 1000)
+                    if res and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+                        LP.Character.HumanoidRootPart.CFrame = CFrame.new(res.Position + Vector3.new(0,3,0))
+                    end
+                end
+            end)
+        else
+            if tapTPConn then tapTPConn:Disconnect() end
+        end
+    end
+})
+
+-- ====================================================
+-- 🔥 PVP & COMBAT TAB
+-- ====================================================
+local aimConn
+Tabs.Combat:AddToggle("SilentAimbot", {
+    Title = "🎯 Silent Aimbot (ล็อคหัวคนใกล้)",
+    Default = false,
+    Callback = function(v)
+        if v then
+            aimConn = RunService.RenderStepped:Connect(function()
+                local nearest, dist = nil, math.huge
+                for _, p in pairs(Players:GetPlayers()) do
+                    if p ~= LP and p.Character and p.Character:FindFirstChild("Head") then
+                        local d = (p.Character.Head.Position - LP.Character.Head.Position).Magnitude
+                        if d < dist then dist = d; nearest = p end
+                    end
+                end
+                if nearest then
+                    workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, nearest.Character.Head.Position)
+                end
+            end)
+        else
+            if aimConn then aimConn:Disconnect() end
+        end
+    end
+})
+
+local auraConn
+Tabs.Combat:AddToggle("KillAura", {
+    Title = "⚔️ Kill Aura (ตบแรงรอบทิศ)",
+    Default = false,
+    Callback = function(v)
+        if v then
+            auraConn = RunService.RenderStepped:Connect(function()
+                for _, p in pairs(Players:GetPlayers()) do
+                    if p ~= LP and p.Character and p.Character:FindFirstChild("Humanoid") then
+                        local d = (p.Character.HumanoidRootPart.Position - LP.Character.HumanoidRootPart.Position).Magnitude
+                        if d <= 18 then p.Character.Humanoid:TakeDamage(12) end
+                    end
+                end
+            end)
+        else
+            if auraConn then auraConn:Disconnect() end
+        end
+    end
+})
+
+local godConn
+Tabs.Combat:AddToggle("AutoRegen", {
+    Title = "🛡️ Auto Regeneration (ฮีลเลือด)",
+    Default = false,
+    Callback = function(v)
+        if v then
+            godConn = RunService.RenderStepped:Connect(function()
+                if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+                    LP.Character.Humanoid.Health = LP.Character.Humanoid.MaxHealth
+                end
+            end)
+        else
+            if godConn then godConn:Disconnect() end
+        end
+    end
+})
+
+Tabs.Combat:AddToggle("RapidFire", { Title = "💥 Rapid Fire (ยิงรัว)", Default = false, Callback = function(v) _G.RapidFire = v end })
+Tabs.Combat:AddToggle("InfAmmo", { Title = "♾️ Infinite Ammo (กระสุนไม่จำกัด)", Default = false, Callback = function(v) _G.InfAmmo = v end })
+Tabs.Combat:AddToggle("FastArrest", { Title = "🚨 Fast Arrest (จับกุมทันที)", Default = false, Callback = function(v) _G.AutoArrest = v end })
+
+-- ====================================================
+-- 👁️ VISUALS & ESP TAB
+-- ====================================================
+local espHL = {}
+Tabs.Visuals:AddToggle("RedESP", {
+    Title = "👁️ Red Neon ESP (มองทะลุสีแดง)",
+    Default = false,
+    Callback = function(v)
+        if v then
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LP and p.Character then
+                    local hl = Instance.new("Highlight", p.Character)
+                    hl.FillColor = Color3.fromRGB(255, 35, 65)
+                    espHL[p] = hl
+                end
+            end
+        else
+            for _, hl in pairs(espHL) do if hl then hl:Destroy() end end
+            espHL = {}
+        end
+    end
+})
+
+Tabs.Visuals:AddToggle("Tracers", { Title = "📏 Line Tracers (เส้นนำสายตา)", Default = false, Callback = function(v) _G.Tracers = v end })
+
+Tabs.Visuals:AddToggle("Fullbright", {
+    Title = "💡 Fullbright (สว่างไร้เงา)",
+    Default = false,
+    Callback = function(v)
+        Lighting.Ambient = v and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(127, 127, 127)
+        Lighting.Brightness = v and 2 or 1
+    end
+})
+
+Tabs.Visuals:AddToggle("NoFog", {
+    Title = "🌫️ No Fog (เปิดวิสัยทัศน์)",
+    Default = false,
+    Callback = function(v)
+        Lighting.FogEnd = v and 9e9 or 1000
+    end
+})
+
+Tabs.Visuals:AddToggle("ProMaxFOV", {
+    Title = "🎥 Pro Max FOV (120)",
+    Default = false,
+    Callback = function(v)
+        workspace.CurrentCamera.FieldOfView = v and 120 or 70
+    end
+})
+
+Tabs.Visuals:AddToggle("RedNightVision", {
+    Title = "🌙 Red Night Vision (โหมดกลางคืน)",
+    Default = false,
+    Callback = function(v)
+        Lighting.OutdoorAmbient = v and Color3.fromRGB(255, 0, 50) or Color3.fromRGB(127, 127, 127)
+    end
+})
+
+-- ====================================================
+-- ☠️ MISC & SYSTEM TAB
+-- ====================================================
+local spinVelocity
+Tabs.Misc:AddToggle("Spinbot", {
+    Title = "🌪️ Spinbot (หมุนก่อกวน 100x)",
+    Default = false,
+    Callback = function(v)
+        if v then
+            if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+                spinVelocity = Instance.new("BodyAngularVelocity", LP.Character.HumanoidRootPart)
+                spinVelocity.AngularVelocity = Vector3.new(0, 100, 0)
+                spinVelocity.MaxTorque = Vector3.new(0, 9e9, 0)
+            end
+        else
+            if spinVelocity then spinVelocity:Destroy() end
+        end
+    end
+})
+
+Tabs.Misc:AddToggle("GhostMode", {
+    Title = "👻 Ghost Mode (ร่างล่องหน)",
+    Default = false,
+    Callback = function(v)
+        if LP.Character then
+            for _, part in pairs(LP.Character:GetDescendants()) do
+                if part:IsA("BasePart") or part:IsA("Decal") then part.Transparency = v and 1 or 0 end
+            end
+        end
+    end
+})
+
+local afkConn
+Tabs.Misc:AddToggle("AntiAFK", {
+    Title = "💤 Anti-AFK (ป้องกันการถูกเตะ)",
+    Default = false,
+    Callback = function(v)
+        if v then
+            local vu = game:GetService("VirtualUser")
+            afkConn = LP.Idled:Connect(function()
+                vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+                task.wait(1)
+                vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            end)
+        else
+            if afkConn then afkConn:Disconnect() end
+        end
+    end
+})
+
+local sitConn
+Tabs.Misc:AddToggle("FastSitSpam", {
+    Title = "🪑 Fast Sit Spam (นั่งรัวๆ)",
+    Default = false,
+    Callback = function(v)
+        if v then
+            sitConn = RunService.RenderStepped:Connect(function()
+                if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+                    LP.Character.Humanoid.Sit = true
+                end
+            end)
+        else
+            if sitConn then sitConn:Disconnect() end
+            if LP.Character and LP.Character:FindFirstChild("Humanoid") then LP.Character.Humanoid.Sit = false end
+        end
+    end
+})
+
+Fluent:SelectTab(1)
+print("Obsidian Warfare Fluent UI Edition Loaded Successfully!")
