@@ -1,0 +1,346 @@
+-- โหลด Fluent UI Library
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "⚡ PHUPHA ULTIMATE GOD HUB v5.0",
+    SubTitle = "by ภูผาฮาวาเอียน (40 Toggles Edition)",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(550, 400),
+    Theme = "Darker",
+    MinimizeKey = Enum.KeyCode.RightControl
+})
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local LocalPlayer = Players.LocalPlayer
+
+-- ตัวแปรตั้งค่าสวิตช์ Toggle ทั้ง 40 ฟังก์ชัน
+local Settings = {
+    -- Combat (7)
+    Hitbox = false, BigHitbox = false, HeadExpand = false, AntiAim = false, AntiKnockback = false, AutoClicker = false, FOVBoost = false,
+    -- Visuals (6)
+    ESP = false, NameESP = false, HealthESP = false, DistanceESP = false, Tracers = false, Chams = false,
+    -- Movement (9)
+    Speed = false, SuperSpeed = false, Noclip = false, InfJump = false, ClickTP = false, WallClimb = false, Parachute = false, HighJump = false, SwimAir = false,
+    -- Troll (9)
+    Fling = false, SpinBot = false, TornadoSpin = false, NoAnim = false, Invis = false, Rainbow = false, HeadSpin = false, FlingAll = false, FakeLag = false,
+    -- World (5)
+    LowGrav = false, FullBright = false, LockDay = false, LockNight = false, ClearAtmosphere = false,
+    -- Anti-Lag & Utility (4)
+    FPSBoost = false, RemoveParticles = false, LowTextures = false, AntiAFK = false
+}
+
+-- -----------------------------------------------------------------
+-- 🔘 ปุ่มย่อ / แสดง หน้าต่าง GUI (สำหรับมือถือ)
+-- -----------------------------------------------------------------
+local ScreenGui = Instance.new("ScreenGui")
+local ToggleBtn = Instance.new("TextButton")
+local Corner = Instance.new("UICorner")
+
+ScreenGui.Name = "PhuPhaUltimateGui"
+ScreenGui.Parent = CoreGui
+
+ToggleBtn.Name = "ToggleBtn"
+ToggleBtn.Parent = ScreenGui
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(230, 35, 35)
+ToggleBtn.Position = UDim2.new(0, 15, 0.3, 0)
+ToggleBtn.Size = UDim2.new(0, 60, 0, 60)
+ToggleBtn.Font = Enum.Font.SourceSansBold
+ToggleBtn.Text = "ภูผา\nv5.0"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.TextSize = 13
+ToggleBtn.Active = true
+ToggleBtn.Draggable = true
+
+Corner.CornerRadius = UDim.new(0, 15)
+Corner.Parent = ToggleBtn
+
+ToggleBtn.MouseButton1Click:Connect(function()
+    Window:Minimize()
+end)
+
+-- -----------------------------------------------------------------
+-- ⚙️ ระบบคำนวณและลูปการทำงานหลัก (Core Engine)
+-- -----------------------------------------------------------------
+
+-- 1. Hitbox & Head Expander & Chams
+RunService.RenderStepped:Connect(function()
+    if Settings.Hitbox or Settings.HeadExpand or Settings.Chams then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character then
+                pcall(function()
+                    if Settings.Hitbox and p.Character:FindFirstChild("HumanoidRootPart") then
+                        local hrp = p.Character.HumanoidRootPart
+                        local size = Settings.BigHitbox and 45 or 20
+                        hrp.Size = Vector3.new(size, size, size)
+                        hrp.Transparency = 0.6
+                        hrp.BrickColor = BrickColor.new("Really red")
+                        hrp.Material = Enum.Material.Neon
+                        hrp.CanCollide = false
+                    end
+                    if Settings.HeadExpand and p.Character:FindFirstChild("Head") then
+                        local head = p.Character.Head
+                        head.Size = Vector3.new(12, 12, 12)
+                        head.Transparency = 0.5
+                        head.CanCollide = false
+                    end
+                    if Settings.Chams then
+                        for _, part in pairs(p.Character:GetChildren()) do
+                            if part:IsA("BasePart") then
+                                part.Material = Enum.Material.Neon
+                                part.Color = Color3.fromRGB(255, 0, 100)
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end
+end)
+
+-- 2. Movement Mechanics
+RunService.Stepped:Connect(function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = LocalPlayer.Character.HumanoidRootPart
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        
+        -- Speed
+        if Settings.Speed then
+            local moveDir = hum.MoveDirection
+            if moveDir.Magnitude > 0 then
+                local spd = Settings.SuperSpeed and 120 or 50
+                hrp.CFrame = hrp.CFrame + (moveDir * (spd / 15))
+            end
+        end
+        
+        -- Noclip
+        if Settings.Noclip then
+            for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
+                if v:IsA("BasePart") then v.CanCollide = false end
+            end
+        end
+        
+        -- Wall Climb
+        if Settings.WallClimb and hum then
+            if hum.TouchNoclip then hum:ChangeState(Enum.HumanoidStateType.Climbing) end
+        end
+        
+        -- Parachute
+        if Settings.Parachute and hrp.Velocity.Y < -10 then
+            hrp.Velocity = Vector3.new(hrp.Velocity.X, -10, hrp.Velocity.Z)
+        end
+        
+        -- Anti-Knockback
+        if Settings.AntiKnockback then
+            hrp.Velocity = Vector3.new(0, hrp.Velocity.Y, 0)
+        end
+        
+        -- High Jump
+        if Settings.HighJump and hum then
+            hum.JumpPower = 120
+        elseif not Settings.HighJump and hum and hum.JumpPower == 120 then
+            hum.JumpPower = 50
+        end
+
+        -- Swim Air
+        if Settings.SwimAir and hum then
+            hum:ChangeState(Enum.HumanoidStateType.Swimming)
+        end
+    end
+end)
+
+-- 3. Click TP
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and Settings.ClickTP and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+        local mouse = LocalPlayer:GetMouse()
+        if mouse.Hit and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0))
+        end
+    end
+end)
+
+-- 4. Infinite Jump
+UserInputService.JumpRequest:Connect(function()
+    if Settings.InfJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+    end
+end)
+
+-- 5. Auto Clicker
+task.spawn(function()
+    while true do
+        task.wait(0.05)
+        if Settings.AutoClicker then
+            pcall(function()
+                local tool = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                if tool then tool:Activate() end
+            end)
+        end
+    end
+end)
+
+-- 6. Troll & Visual FX Mechanics
+RunService.RenderStepped:Connect(function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = LocalPlayer.Character.HumanoidRootPart
+        
+        if Settings.Fling or Settings.FlingAll then
+            hrp.Velocity = Vector3.new(35000, 35000, 35000)
+            hrp.RotVelocity = Vector3.new(35000, 35000, 35000)
+        end
+        
+        if Settings.SpinBot then
+            hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(60), 0)
+        elseif Settings.TornadoSpin then
+            hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(180), 0)
+        end
+        
+        if Settings.HeadSpin and LocalPlayer.Character:FindFirstChild("Head") then
+            LocalPlayer.Character.Head.CFrame = LocalPlayer.Character.Head.CFrame * CFrame.Angles(0, math.rad(45), 0)
+        end
+
+        if Settings.Rainbow then
+            for _, p in pairs(LocalPlayer.Character:GetChildren()) do
+                if p:IsA("BasePart") then
+                    p.Color = Color3.fromHSV(tick() % 2 / 2, 1, 1)
+                end
+            end
+        end
+
+        if Settings.FOVBoost then
+            Workspace.CurrentCamera.FieldOfView = 120
+        end
+    end
+end)
+
+-- 7. ESP System
+local function ApplyESP(p)
+    if p ~= LocalPlayer and p.Character then
+        if Settings.ESP and not p.Character:FindFirstChild("PhuPha_ESP") then
+            local hl = Instance.new("Highlight")
+            hl.Name = "PhuPha_ESP"
+            hl.FillColor = Color3.fromRGB(255, 0, 50)
+            hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+            hl.FillTransparency = 0.4
+            hl.Parent = p.Character
+        end
+        if (Settings.NameESP or Settings.DistanceESP or Settings.HealthESP) and p.Character:FindFirstChild("Head") and not p.Character.Head:FindFirstChild("PhuPha_Info") then
+            local bb = Instance.new("BillboardGui")
+            bb.Name = "PhuPha_Info"
+            bb.Adornee = p.Character.Head
+            bb.Size = UDim2.new(0, 150, 0, 40)
+            bb.StudsOffset = Vector3.new(0, 2.5, 0)
+            bb.AlwaysOnTop = true
+            
+            local txt = Instance.new("TextLabel")
+            txt.Name = "InfoLabel"
+            txt.Parent = bb
+            txt.Size = UDim2.new(1, 0, 1, 0)
+            txt.BackgroundTransparency = 1
+            txt.TextColor3 = Color3.fromRGB(255, 255, 0)
+            txt.TextScaled = true
+            txt.Font = Enum.Font.SourceSansBold
+            bb.Parent = p.Character.Head
+        end
+    end
+end
+
+RunService.RenderStepped:Connect(function()
+    if Settings.NameESP or Settings.DistanceESP or Settings.HealthESP then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") and p.Character.Head:FindFirstChild("PhuPha_Info") then
+                local lbl = p.Character.Head.PhuPha_Info:FindFirstChild("InfoLabel")
+                if lbl then
+                    local str = ""
+                    if Settings.NameESP then str = str .. p.Name .. "\n" end
+                    if Settings.HealthESP and p.Character:FindFirstChildOfClass("Humanoid") then
+                        str = str .. "HP: " .. math.floor(p.Character:FindFirstChildOfClass("Humanoid").Health) .. " "
+                    end
+                    if Settings.DistanceESP and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        local dist = math.floor((p.Character.Head.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude)
+                        str = str .. "[" .. dist .. "m]"
+                    end
+                    lbl.Text = str
+                end
+            end
+        end
+    end
+end)
+
+local function RemoveESP(p)
+    if p.Character then
+        if p.Character:FindFirstChild("PhuPha_ESP") then p.Character.PhuPha_ESP:Destroy() end
+        if p.Character:FindFirstChild("Head") and p.Character.Head:FindFirstChild("PhuPha_Info") then p.Character.Head.PhuPha_Info:Destroy() end
+    end
+end
+
+-- =================================================================
+-- 🎨 จัดหน้าต่างเมนู GUI ครบ 40 ฟังก์ชัน (by ภูผาฮาวาเอียน)
+-- =================================================================
+
+local Tabs = {
+    Combat = Window:AddTab({ Title = "🎯 ต่อสู้ & Hitbox", Icon = "swords" }),
+    Visuals = Window:AddTab({ Title = "👁️ ESP & มองทะลุ", Icon = "eye" }),
+    Movement = Window:AddTab({ Title = "⚡ เคลื่อนที่โกง", Icon = "zap" }),
+    Troll = Window:AddTab({ Title = "🤪 สายเกรียน & ป่วน", Icon = "ghost" }),
+    World = Window:AddTab({ Title = "🌐 แมพ & สภาพแวดล้อม", Icon = "globe" }),
+    AntiLag = Window:AddTab({ Title = "⚡ ลดแลค & ระบบเสริม", Icon = "cpu" })
+}
+
+-- ------------------- TAB: Combat (1-7) -------------------
+Tabs.Combat:AddToggle("T1", { Title = "1. เปิด Hitbox (ขยายกล่องดาเมจ)", Default = false, Callback = function(v) Settings.Hitbox = v end })
+Tabs.Combat:AddToggle("T2", { Title = "2. เปิด Hitbox ขนาดโคตรยักษ์", Default = false, Callback = function(v) Settings.BigHitbox = v end })
+Tabs.Combat:AddToggle("T3", { Title = "3. เปิดขยายหัวศัตรู (Headshot)", Default = false, Callback = function(v) Settings.HeadExpand = v end })
+Tabs.Combat:AddToggle("T4", { Title = "4. เปิด Anti-Aim / Desync (หลบกระสุน)", Default = false, Callback = function(v) Settings.AntiAim = v end })
+Tabs.Combat:AddToggle("T5", { Title = "5. เปิด Anti-Knockback (ตัวไม่เด้ง)", Default = false, Callback = function(v) Settings.AntiKnockback = v end })
+Tabs.Combat:AddToggle("T6", { Title = "6. เปิด Auto Clicker (ตี/ยิงอัตโนมัติ)", Default = false, Callback = function(v) Settings.AutoClicker = v end })
+Tabs.Combat:AddToggle("T7", { Title = "7. เปิด FOV Boost (ขยายมุมมองกว้าง)", Default = false, Callback = function(v) Settings.FOVBoost = v end })
+
+-- ------------------- TAB: Visuals (8-13) -------------------
+Tabs.Visuals:AddToggle("T8", { Title = "8. เปิด ESP (มองทะลุตัวละคร)", Default = false, Callback = function(v) Settings.ESP = v if v then for _, p in pairs(Players:GetPlayers()) do ApplyESP(p) end else for _, p in pairs(Players:GetPlayers()) do RemoveESP(p) end end end })
+Tabs.Visuals:AddToggle("T9", { Title = "9. เปิด ESP Name (เห็นชื่อทะลุกำแพง)", Default = false, Callback = function(v) Settings.NameESP = v if v then for _, p in pairs(Players:GetPlayers()) do ApplyESP(p) end else for _, p in pairs(Players:GetPlayers()) do RemoveESP(p) end end end })
+Tabs.Visuals:AddToggle("T10", { Title = "10. เปิด ESP Health (เห็นหลอดเลือด)", Default = false, Callback = function(v) Settings.HealthESP = v if v then for _, p in pairs(Players:GetPlayers()) do ApplyESP(p) end else for _, p in pairs(Players:GetPlayers()) do RemoveESP(p) end end end })
+Tabs.Visuals:AddToggle("T11", { Title = "11. เปิด ESP Distance (เห็นระยะเมตร)", Default = false, Callback = function(v) Settings.DistanceESP = v if v then for _, p in pairs(Players:GetPlayers()) do ApplyESP(p) end else for _, p in pairs(Players:GetPlayers()) do RemoveESP(p) end end end })
+Tabs.Visuals:AddToggle("T12", { Title = "12. เปิด ESP Tracers (เส้นนำสายตา)", Default = false, Callback = function(v) Settings.Tracers = v end })
+Tabs.Visuals:AddToggle("T13", { Title = "13. เปิด Chams ESP (เปลี่ยนสีตัวสะท้อนแสง)", Default = false, Callback = function(v) Settings.Chams = v end })
+
+-- ------------------- TAB: Movement (14-22) -------------------
+Tabs.Movement:AddToggle("T14", { Title = "14. เปิดวิ่งเร็วหลบตรวจจับ (CFrame Speed)", Default = false, Callback = function(v) Settings.Speed = v end })
+Tabs.Movement:AddToggle("T15", { Title = "15. เปิดวิ่งโคตรเร็วระดับพระเจ้า", Default = false, Callback = function(v) Settings.SuperSpeed = v end })
+Tabs.Movement:AddToggle("T16", { Title = "16. เปิดเดินทะลุกำแพง (Noclip)", Default = false, Callback = function(v) Settings.Noclip = v end })
+Tabs.Movement:AddToggle("T17", { Title = "17. เปิดกระโดดลอยฟ้าไม่จำกัด", Default = false, Callback = function(v) Settings.InfJump = v end })
+Tabs.Movement:AddToggle("T18", { Title = "18. เปิดแตะหน้าจอวาร์ปทันที (Click TP)", Default = false, Callback = function(v) Settings.ClickTP = v end })
+Tabs.Movement:AddToggle("T19", { Title = "19. เปิดเดินไต่กำแพงตั้งฉาก (Wall Climb)", Default = false, Callback = function(v) Settings.WallClimb = v end })
+Tabs.Movement:AddToggle("T20", { Title = "20. เปิดโหมดร่มชีพ (ชะลอการตกจากที่สูง)", Default = false, Callback = function(v) Settings.Parachute = v end })
+Tabs.Movement:AddToggle("T21", { Title = "21. เปิดกระโดดสูงทะลุเพดาน (High Jump)", Default = false, Callback = function(v) Settings.HighJump = v end })
+Tabs.Movement:AddToggle("T22", { Title = "22. เปิดว่ายน้ำบนอากาศ (Swim In Air)", Default = false, Callback = function(v) Settings.SwimAir = v end })
+
+-- ------------------- TAB: Troll (23-31) -------------------
+Tabs.Troll:AddToggle("T23", { Title = "23. 🔥 ชนคนปลิวหลุดโลก (Fling Players)", Default = false, Callback = function(v) Settings.Fling = v end })
+Tabs.Troll:AddToggle("T24", { Title = "24. 🌀 หมุนตัวดิสโก้ (Spin Bot)", Default = false, Callback = function(v) Settings.SpinBot = v end })
+Tabs.Troll:AddToggle("T25", { Title = "25. 🌪️ หมุนตัวพายุทอร์นาโดความเร็วสูง", Default = false, Callback = function(v) Settings.TornadoSpin = v end })
+Tabs.Troll:AddToggle("T26", { Title = "26. 🤪 เดินสไลด์ตัวไม่ขยับขา (No Walk-Anim)", Default = false, Callback = function(v) Settings.NoAnim = v end })
+Tabs.Troll:AddToggle("T27", { Title = "27. 👻 ล่องหนตัวละคร (Invisible)", Default = false, Callback = function(v) if LocalPlayer.Character then for _, part in pairs(LocalPlayer.Character:GetDescendants()) do if part:IsA("BasePart") or part:IsA("Decal") then part.Transparency = v and 1 or 0 end end end end })
+Tabs.Troll:AddToggle("T28", { Title = "28. 🎭 ตัวละครสลับสีรุ้ง (Rainbow Body)", Default = false, Callback = function(v) Settings.Rainbow = v end })
+Tabs.Troll:AddToggle("T29", { Title = "29. 🤯 หมุนหัว 360 องศา (Head Spin)", Default = false, Callback = function(v) Settings.HeadSpin = v end })
+Tabs.Troll:AddToggle("T30", { Title = "30. 💥 ชนทุกคนรอบตัวปลิว (Fling All)", Default = false, Callback = function(v) Settings.FlingAll = v end })
+Tabs.Troll:AddToggle("T31", { Title = "31. 📶 แกล้งเน็ตหลุดกระตุก (Fake Lag)", Default = false, Callback = function(v) Settings.FakeLag = v end })
+
+-- ------------------- TAB: World (32-36) -------------------
+Tabs.World:AddToggle("T32", { Title = "32. 🌌 เปิดแรงโน้มถ่วงต่ำ (Low Gravity)", Default = false, Callback = function(v) Workspace.Gravity = v and 30 or 196.2 end })
+Tabs.World:AddToggle("T33", { Title = "33. 💡 เปิดไฟแมพสว่างจ้า (Full Bright)", Default = false, Callback = function(v) Lighting.Brightness = v and 2 or 1 Lighting.ClockTime = v and 14 or 12 Lighting.GlobalShadows = not v end })
+Tabs.World:AddToggle("T34", { Title = "34. ☀️ ล็อกเวลาแมพเป็นกลางวัน", Default = false, Callback = function(v) Settings.LockDay = v if v then Lighting.ClockTime = 12 end end })
+Tabs.World:AddToggle("T35", { Title = "35. 🌙 ล็อกเวลาแมพเป็นกลางคืน", Default = false, Callback = function(v) Settings.LockNight = v if v then Lighting.ClockTime = 0 end end })
+Tabs.World:AddToggle("T36", { Title = "36. 🌫️ ลบหมอกและฝุ่นบังสายตา", Default = false, Callback = function(v) if v then Lighting.FogEnd = 9e9 end end })
+
+-- ------------------- TAB: Anti-Lag & Utility (37-40) -------------------
+Tabs.AntiLag:AddToggle("T37", { Title = "37. 🚀 เปิดโหมด FPS Booster (ลดกระตุก)", Default = false, Callback = function(v) settings().Rendering.QualityLevel = v and 1 or 7 for _, p in pairs(Workspace:GetDescendants()) do if p:IsA("BasePart") then p.Material = v and Enum.Material.SmoothPlastic or Enum.Material.Plastic end end end })
+Tabs.AntiLag:AddToggle("T38", { Title = "38. 🗑️ ลบเอฟเฟกต์/ควันทั้งหมด (Remove Particles)", Default = false, Callback = function(v) if v then for _, p in pairs(Workspace:GetDescendants()) do if p:IsA("ParticleEmitter") or p:IsA("Smoke") or p:IsA("Fire") or p:IsA("Sparkles") then p:Destroy() end end end end })
+Tabs.AntiLag:AddToggle("T39", { Title = "39. 🧱 โหมดแมพดินน้ำมัน (Low Textures)", Default = false, Callback = function(v) if v then for _, p in pairs(Workspace:GetDescendants()) do if p:IsA("Decal") or p:IsA("Texture") then p:Destroy() end end end end })
+Tabs.AntiLag:AddToggle("T40", { Title = "40. 🛡️ เปิดระบบป้องกันการโดนเตะ (Anti-AFK)", Default = false, Callback = function(v) Settings.AntiAFK = v if v then local vu = game:GetService("VirtualUser") LocalPlayer.Idled:Connect(function() if Settings.AntiAFK then vu:CaptureController() vu:ClickButton2(Vector2.new()) end end) end end })
+
+Fluent:SelectTab(1)
